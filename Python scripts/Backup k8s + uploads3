@@ -1,0 +1,27 @@
+Backup K8s y subir a s3
+
+import boto3
+import subprocess
+import os
+
+# Crear un cliente S3
+s3_client = boto3.client('s3')
+
+# Nombre del bucket S3
+bucket_name = 'my-unique-backup-bucket'
+
+# Nombre del pod y del archivo que deseas respaldar
+pod_name = 'my-pod'
+namespace = 'default'  # O el namespace en el que se encuentra tu pod
+file_path = '/tmp/my-pod-backup.tar'  # Ruta donde guardarás el backup temporalmente
+
+# Realizar el backup: obtener los archivos del pod y guardarlos en un archivo tar
+subprocess.run(f"kubectl cp {namespace}/{pod_name}:/path/to/data {file_path}", shell=True)
+
+# Comprimir los datos (si es necesario)
+# subprocess.run(f"tar -cvf {file_path} /path/to/data", shell=True)
+
+# Subir el archivo comprimido a S3
+s3_client.upload_file(file_path, bucket_name, f'backup/{pod_name}/data.tar')
+
+print(f"Backup del pod '{pod_name}' subido a S3.")
